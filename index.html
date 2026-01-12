@@ -19,5 +19,11 @@
 </head>
 <body>
     <iframe src="https://script.google.com/macros/s/AKfycbyhvSJ981oLg991cBFd1CsLpvoNiwT836tn8rKEOXw8GH9umxpyvrQzVuUtxG6kfbC6/exec"></iframe>
+    <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./service-worker.js");
+    }
+</script>
+
 </body>
 </html>
