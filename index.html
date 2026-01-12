@@ -1,96 +1,187 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <title>SIPENCAR</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    
-    <link rel="icon" href="LogoSipencar.png">
-    <link rel="apple-touch-icon" href="LogoSipencar.png">
-    
-    <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#990000">
-    <link rel="apple-touch-icon" sizes="180x180" href="./LogoSipencar-180.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIPENCAR - Sistem Pencarian Arsip</title>
 
-    
-    <style>
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
-        iframe { width: 100%; height: 100%; border: none; }
-    </style>
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" type="image/png" href="./LogoSipencar.png">
+<link rel="apple-touch-icon" sizes="180x180" href="./LogoSipencar-180.png">
+<meta name="theme-color" content="#990000">
+
+<!-- Bootstrap & Google Fonts -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+
+<style>
+body { font-family: 'Roboto', sans-serif; background: #f4f6f8; padding-bottom: 60px; }
+.header-app {
+  background: linear-gradient(160deg,#990000 0%,#660000 100%);
+  color:white; padding:40px 20px 60px 20px; border-bottom-left-radius:25px; border-bottom-right-radius:25px; text-align:center;
+}
+.logo-container { background:white; width:80px; height:80px; border-radius:50%; margin:0 auto 15px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 8px rgba(0,0,0,0.2); overflow:hidden; }
+.logo-kpu { width:100%; height:100%; object-fit:contain; }
+.header-title-main { font-weight:900; font-size:1.3rem; line-height:1.2; }
+.header-subtitle { font-weight:700; font-size:1.1rem; margin-top:5px; text-transform:uppercase; letter-spacing:0.5px; }
+.header-small { font-size:0.85rem; color:#e0e0e0; margin-top:5px; font-weight:400; opacity:0.9; line-height:1.4; }
+
+.search-container { margin-top:-25px; padding:0 20px; }
+.search-box { background:white; padding:10px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.08); display:flex; gap:10px; }
+.search-input { border:1px solid #eee; background:#fcfcfc; border-radius:8px; flex-grow:1; padding:12px 15px; font-size:16px; outline:none; }
+.search-btn { background-color:#212529; color:white; border:none; border-radius:8px; padding:0 20px; font-weight:600; }
+
+.card-result { background:white; border-radius:12px; border:1px solid #dee2e6; box-shadow:0 4px 8px rgba(0,0,0,0.05); margin-bottom:30px; overflow:hidden; transition: transform 0.2s; padding:15px; }
+.btn-aksi { background-color:#198754; color:white; font-weight:600; padding:10px 15px; border-radius:8px; text-decoration:none; display:inline-block; margin-top:5px; text-align:center; }
+.btn-aksi:hover { background-color:#146c43; color:white; }
+
+.result-count { text-align:center; margin-top:20px; font-size:0.9rem; color:#666; }
+#loadMoreBtn { display:block; margin:20px auto; padding:10px 20px; font-weight:600; border:none; border-radius:8px; background:#212529; color:white; cursor:pointer; }
+#loadMoreBtn:hover { background:#000; }
+
+/* tombol install */
+#installBtn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 12px 20px;
+  background: #198754;
+  color: white;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  z-index: 9999;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  display: none;
+}
+</style>
 </head>
 <body>
-    <iframe src="https://script.google.com/macros/s/AKfycbyhvSJ981oLg991cBFd1CsLpvoNiwT836tn8rKEOXw8GH9umxpyvrQzVuUtxG6kfbC6/exec"></iframe>
-    <script>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./service-worker.js");
-    }
-    </script>
 
-     <script>
-  // Fungsi buat tombol install
-  function createInstallButton() {
-    // Jangan buat tombol kalau sudah ada
-    if (document.getElementById('installBtn')) return;
+<div class="header-app">
+  <div class="logo-container">
+    <img src="./LogoSipencar.png" alt="Logo SIPENCAR" class="logo-kpu">
+  </div>
+  <div class="header-title-main">SIPENCAR</div>
+  <div class="header-subtitle">Sistem Pencarian Arsip</div>
+  <div class="header-small">Sub Bagian Teknis Penyelenggaraan Pemilu KPU Provinsi Bali</div>
+</div>
 
-    // Cek apakah app sudah di-install (PWA)
-    const isInstalled = window.matchMedia('(display-mode: standalone)').matches
-                     || window.navigator.standalone; // untuk iOS
-    if (isInstalled) return; // sudah terpasang → jangan tampilkan tombol
+<div class="container" style="max-width:700px; margin-top:20px;">
+  <div class="search-container">
+    <form id="searchForm">
+      <div class="search-box">
+        <input type="text" id="keyword" class="search-input" placeholder="Cari dokumen...">
+        <button type="submit" class="search-btn">CARI</button>
+      </div>
+    </form>
+  </div>
 
-    // Cek apakah tombol sudah pernah ditampilkan
-    if (localStorage.getItem('installBtnShown')) return;
+  <div id="loading" class="text-center my-4" style="display:none;">
+    <div class="spinner-border text-danger" role="status"></div>
+    <p class="small text-muted mt-2">Sedang memuat...</p>
+  </div>
 
-    // Buat tombol
-    const btn = document.createElement('button');
-    btn.id = 'installBtn';
-    btn.innerText = "📲 Install Aplikasi";
-    btn.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      padding: 12px 20px;
-      background: #198754;
-      color: white;
-      font-weight: 600;
-      border-radius: 8px;
-      border: none;
-      z-index: 9999;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-      cursor: pointer;
-      transition: opacity 0.3s;
-    `;
-    document.body.appendChild(btn);
+  <div id="resultCount" class="result-count"></div>
+  <div id="hasilPencarian"></div>
+  <button id="loadMoreBtn" style="display:none;" onclick="renderBatch()">Load More</button>
+</div>
 
-    // Klik tombol → tampilkan instruksi
-    btn.addEventListener('click', () => {
-      alert(
-        "Untuk menambahkan SIPENCAR ke layar utama:\n\n" +
-        "1. Tekan menu Chrome (tiga titik) di kanan atas.\n" +
-        "2. Pilih 'Tambahkan ke Layar Utama'.\n" +
-        "3. Konfirmasi dan ikon akan muncul di Home Screen Anda."
-      );
-      btn.style.display = 'none';
-      localStorage.setItem('installBtnShown', 'true'); // tandai sudah tampil
+<button id="installBtn">📲 Install Aplikasi</button>
+
+<script>
+let deferredPrompt;
+let allData = [];
+let currentIndex = 0;
+const batchSize = 20;
+
+// ---------- SERVICE WORKER ----------
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./service-worker.js");
+}
+
+// ---------- PWA INSTALL ----------
+const installBtn = document.getElementById('installBtn');
+window.addEventListener('beforeinstallprompt', (e)=>{
+  e.preventDefault();
+  deferredPrompt = e;
+  installBtn.style.display = 'block';
+});
+
+installBtn.addEventListener('click', async ()=>{
+  installBtn.style.display = 'none';
+  deferredPrompt.prompt();
+  const choice = await deferredPrompt.userChoice;
+  console.log('User choice:', choice.outcome);
+  deferredPrompt = null;
+});
+
+// ---------- SEARCH ----------
+document.getElementById('searchForm').addEventListener('submit', (e)=>{
+  e.preventDefault();
+  cari();
+});
+
+function cari(){
+  const keyword = document.getElementById('keyword').value;
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('hasilPencarian').innerHTML = '';
+  document.getElementById('resultCount').innerText = '';
+  document.getElementById('loadMoreBtn').style.display = 'none';
+  allData = [];
+  currentIndex = 0;
+
+  fetch(`https://script.google.com/macros/s/AKfycbyhvSJ981oLg991cBFd1CsLpvoNiwT836tn8rKEOXw8GH9umxpyvrQzVuUtxG6kfbC6/exec?keyword=${encodeURIComponent(keyword)}`)
+    .then(res=>res.json())
+    .then(data=>{
+      allData = data;
+      document.getElementById('loading').style.display='none';
+      if(!data || data.length===0){
+        document.getElementById('resultCount').innerText = "Tidak ditemukan dokumen.";
+        document.getElementById('hasilPencarian').innerHTML='<p class="text-center text-muted py-5">Coba kata kunci lain.</p>';
+        return;
+      }
+      document.getElementById('resultCount').innerText = "Ditemukan "+data.length+" dokumen:";
+      renderBatch();
+    })
+    .catch(err=>{
+      document.getElementById('loading').style.display='none';
+      alert("Terjadi kesalahan: "+err.message);
     });
+}
 
-    // Hilangkan tombol otomatis setelah 5 detik
-    setTimeout(() => {
-      btn.style.opacity = '0';
-      setTimeout(() => {
-        btn.remove();
-        localStorage.setItem('installBtnShown', 'true'); // tandai sudah tampil
-      }, 500);
-    }, 5000);
+function renderBatch(){
+  const container = document.getElementById('hasilPencarian');
+  let end = Math.min(currentIndex + batchSize, allData.length);
+
+  for(let i=currentIndex;i<end;i++){
+    const item = allData[i];
+    const card = document.createElement('div');
+    card.className = 'card-result';
+    let html = `<div class="doc-title">${item.nama}</div>`;
+    if(item.ringkasan) html += `<div class="doc-desc">${item.ringkasan}</div>`;
+
+    const hasLink = item.link && item.link.toString().includes('http');
+    if(hasLink){
+      html += `<a href="${item.link}" target="_blank" class="btn-aksi">📄 Lihat / Unduh File</a>`;
+    } else if(item.link && item.link.trim()!==""){
+      html += `<div class="text-nodata">ℹ️ Info: ${item.link}</div>`;
+    } else {
+      html += `<div class="text-nodata">🔒 File digital belum tersedia</div>`;
+    }
+    card.innerHTML = html;
+    container.appendChild(card);
   }
+  currentIndex = end;
 
-  // Tampilkan tombol saat halaman load
-  window.addEventListener('load', () => {
-    createInstallButton();
-  });
-
-  // Hilangkan event scroll, karena tombol hanya muncul sekali
+  if(currentIndex < allData.length){
+    document.getElementById('loadMoreBtn').style.display='block';
+  } else {
+    document.getElementById('loadMoreBtn').style.display='none';
+  }
+}
 </script>
-
-
 
 </body>
 </html>
