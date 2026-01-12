@@ -25,19 +25,25 @@
     }
     </script>
 
-   <script>
-let deferredPrompt;
+     <script>
+  // Fungsi buat tombol install
+  function createInstallButton() {
+    // Jangan buat tombol kalau sudah ada
+    if (document.getElementById('installBtn')) return;
 
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault(); // cegah prompt otomatis
-  deferredPrompt = e;
+    // Cek apakah app sudah di-install (PWA)
+    const isInstalled = window.matchMedia('(display-mode: standalone)').matches
+                     || window.navigator.standalone; // untuk iOS
+    if (isInstalled) return; // sudah terpasang → jangan tampilkan tombol
 
-  // Cek apakah tombol sudah ada
-  if (!document.getElementById('installBtn')) {
-    const installBtn = document.createElement('button');
-    installBtn.id = 'installBtn';
-    installBtn.innerText = "Install Aplikasi";
-    installBtn.style.cssText = `
+    // Cek apakah tombol sudah pernah ditampilkan
+    if (localStorage.getItem('installBtnShown')) return;
+
+    // Buat tombol
+    const btn = document.createElement('button');
+    btn.id = 'installBtn';
+    btn.innerText = "📲 Install Aplikasi";
+    btn.style.cssText = `
       position: fixed;
       bottom: 20px;
       right: 20px;
@@ -49,19 +55,41 @@ window.addEventListener('beforeinstallprompt', (e) => {
       border: none;
       z-index: 9999;
       box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      cursor: pointer;
+      transition: opacity 0.3s;
     `;
-    document.body.appendChild(installBtn);
+    document.body.appendChild(btn);
 
-    installBtn.addEventListener('click', async () => {
-      installBtn.style.display = 'none';
-      deferredPrompt.prompt();
-      const choice = await deferredPrompt.userChoice;
-      console.log('User choice:', choice.outcome); // accepted / dismissed
-      deferredPrompt = null;
+    // Klik tombol → tampilkan instruksi
+    btn.addEventListener('click', () => {
+      alert(
+        "Untuk menambahkan SIPENCAR ke layar utama:\n\n" +
+        "1. Tekan menu Chrome (tiga titik) di kanan atas.\n" +
+        "2. Pilih 'Tambahkan ke Layar Utama'.\n" +
+        "3. Konfirmasi dan ikon akan muncul di Home Screen Anda."
+      );
+      btn.style.display = 'none';
+      localStorage.setItem('installBtnShown', 'true'); // tandai sudah tampil
     });
+
+    // Hilangkan tombol otomatis setelah 5 detik
+    setTimeout(() => {
+      btn.style.opacity = '0';
+      setTimeout(() => {
+        btn.remove();
+        localStorage.setItem('installBtnShown', 'true'); // tandai sudah tampil
+      }, 500);
+    }, 5000);
   }
-});
+
+  // Tampilkan tombol saat halaman load
+  window.addEventListener('load', () => {
+    createInstallButton();
+  });
+
+  // Hilangkan event scroll, karena tombol hanya muncul sekali
 </script>
+
 
 
 </body>
