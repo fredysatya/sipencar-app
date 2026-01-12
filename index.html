@@ -102,7 +102,7 @@
       document.getElementById('resultCount').innerText='';
 
       try {
-        const res = await fetch(`https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec?keyword=${encodeURIComponent(keyword)}`);
+        const res = await fetch(`https://script.google.com/macros/s/AKfycbyhvSJ981oLg991cBFd1CsLpvoNiwT836tn8rKEOXw8GH9umxpyvrQzVuUtxG6kfbC6/exec?keyword=${encodeURIComponent(keyword)}`);
         const data = await res.json();
 
         document.getElementById('loading').style.display='none';
