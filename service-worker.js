@@ -1,36 +1,43 @@
-const CACHE_NAME = "sipencar-cache-v2"; // ganti versi cache
+const CACHE_NAME = 'sipencar-cache-v1';
 const ASSETS = [
-  "/sipencar-app/",
-  "/sipencar-app/index.html",
-  "/sipencar-app/manifest.json",
-  "/sipencar-app/icon-192.png",
-  "/sipencar-app/icon-512.png",
-  // tambahkan CSS / JS kamu di sini
+  './',
+  './index.html',
+  './manifest.json',
+  './LogoSipencar.png',
+  './LogoSipencar-180.png',
+  './service-worker.js',
+  'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',
+  'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap'
 ];
 
-self.addEventListener("install", event => {
-  self.skipWaiting(); // Paksa service worker baru aktif
+// Install event
+self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(ASSETS))
   );
 });
 
-self.addEventListener("activate", event => {
+// Activate event
+self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys.filter(key => key !== CACHE_NAME)
-            .map(key => caches.delete(key))
-      )
-    )
+    caches.keys().then(keys => Promise.all(
+      keys.map(key => { if(key !== CACHE_NAME) return caches.delete(key); })
+    ))
   );
-  clients.claim(); // kontrol halaman langsung
+  self.clients.claim();
 });
 
-self.addEventListener("fetch", event => {
+// Fetch event
+self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.match(event.request).then(response => {
-      return response || fetch(event.request);
-    })
+    caches.match(event.request)
+      .then(response => response || fetch(event.request))
+      .catch(() => {
+        // fallback jika offline
+        if(event.request.destination === 'document'){
+          return caches.match('./index.html');
+        }
+      })
   );
 });
