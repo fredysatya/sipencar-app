@@ -1,0 +1,20 @@
+{
+  "name": "SIPENCAR KPU",
+  "short_name": "SIPENCAR",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#990000",
+  "icons": [
+    {
+      "src": "LogoSipencar.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "LogoSipencar.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
