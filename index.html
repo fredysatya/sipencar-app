@@ -90,53 +90,88 @@
   </script>
 
   <!-- Fungsi pencarian via Apps Script -->
-  <script>
+<script>
     const form = document.getElementById('searchForm');
+    
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
+      
       const keyword = document.getElementById('keyword').value.trim();
       if(!keyword) return;
 
+      // 1. Reset Tampilan (Tampilkan loading, kosongkan hasil lama)
       document.getElementById('loading').style.display='block';
       document.getElementById('hasilPencarian').innerHTML='';
       document.getElementById('resultCount').innerText='';
 
       try {
-        const res = await fetch(`https://script.google.com/macros/s/AKfycbyhvSJ981oLg991cBFd1CsLpvoNiwT836tn8rKEOXw8GH9umxpyvrQzVuUtxG6kfbC6/exec?keyword=${encodeURIComponent(keyword)}`);
+        // ==========================================
+        // BAGIAN KODE BARU DIMULAI DARI SINI
+        // ==========================================
+        
+        // URL Web App Script Anda (Pastikan akhiran /exec)
+        const scriptURL = "https://script.google.com/macros/s/AKfycbyhvSJ981oLg991cBFd1CsLpvoNiwT836tn8rKEOXw8GH9umxpyvrQzVuUtxG6kfbC6/exec";
+        
+        // Tambahkan parameter keyword ke URL
+        const url = `${scriptURL}?keyword=${encodeURIComponent(keyword)}`;
+
+        // Lakukan Fetch Data
+        const res = await fetch(url);
+
+        // Cek jika ada error dari server
+        if (!res.ok) throw new Error("Gagal menghubungi server (HTTP " + res.status + ")");
+
+        // Ubah hasil menjadi JSON
         const data = await res.json();
 
+        // ==========================================
+        // LOGIKA RENDERING (MENAMPILKAN HASIL)
+        // ==========================================
+        
         document.getElementById('loading').style.display='none';
         const container = document.getElementById('hasilPencarian');
         const countLabel = document.getElementById('resultCount');
 
-        if(!data || data.length===0){
+        // Jika data kosong / tidak ditemukan
+        if(!data || data.length === 0){
           countLabel.innerText = "Tidak ditemukan dokumen.";
           container.innerHTML='<p class="text-center text-muted py-5">Coba kata kunci lain.</p>';
           return;
         }
 
+        // Jika data ada
         countLabel.innerText = `Ditemukan ${data.length} dokumen:`;
 
+        // Loop untuk membuat kartu dokumen
         data.forEach(item => {
           const card = document.createElement('div');
           card.className = 'card-result';
+          
           let html = `<div class="card-body"><div class="doc-title">${item.nama}</div>`;
-          if(item.ringkasan) html += `<div class="doc-desc">${item.ringkasan}</div>`;
-          if(item.link && item.link.includes('http')){
-            html += `<a href="${item.link}" target="_blank" class="btn-aksi">📄 Lihat / Unduh File</a>`;
-          } else if(item.link && item.link.trim()!==""){
-            html += `<div>ℹ️ Info: ${item.link}</div>`;
-          } else {
-            html += `<div>🔒 File digital belum tersedia</div>`;
+          
+          if(item.ringkasan) {
+            html += `<div class="doc-desc">${item.ringkasan}</div>`;
           }
+          
+          // Cek apakah link valid (http/https)
+          if(item.link && (item.link.includes('http') || item.link.includes('www'))){
+            html += `<a href="${item.link}" target="_blank" class="btn-aksi">📄 Lihat / Unduh File</a>`;
+          } else if(item.link && item.link.trim() !== ""){
+            html += `<div class="mt-2 text-muted" style="font-size:0.9rem">ℹ️ Info: ${item.link}</div>`;
+          } else {
+            html += `<div class="mt-2 text-muted" style="font-size:0.9rem">🔒 File digital belum tersedia</div>`;
+          }
+          
           html += `</div>`;
           card.innerHTML = html;
           container.appendChild(card);
         });
 
       } catch(err){
+        // Jika terjadi error (misal koneksi putus)
         document.getElementById('loading').style.display='none';
-        alert("Terjadi kesalahan: "+err.message);
+        console.error(err);
+        alert("Terjadi kesalahan: " + err.message);
       }
     });
   </script>
